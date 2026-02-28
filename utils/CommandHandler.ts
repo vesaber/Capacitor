@@ -1,8 +1,91 @@
-import { Message } from "@fluxerjs/core";
+import { Message, EmbedBuilder } from "@fluxerjs/core";
 import * as commands from "../commands";
+import type { CommandSchema } from "./CommandSchema";
+import { Permissions } from "./CommandSchema";
+
+const PREFIX = "c!";
 
 export async function CommandHandler(message: Message) {
-  Object.keys(commands).forEach((command) => {});
+  if (message.author.bot) return;
+  if (!message.content.startsWith(PREFIX)) return;
+
+  const args = message.content.slice(PREFIX.length).trim().split(/\s+/);
+  const commandName = args.shift()?.toLowerCase();
+  if (!commandName) return;
+
+  const command = Object.values(commands).find(
+    (cmd) => (cmd as CommandSchema).name === commandName
+  ) as CommandSchema | undefined;
+
+  if (!command) {
+    await message.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(0x2D8A4E)
+          .setTitle("Unknown command")
+          .setDescription(`No command named \`${commandName}\`. Try \`c!help\`.`),
+      ],
+    });
+    return;
+  }
+
+  if (command.requireOwner && message.author.id !== process.env.OWNER_ID) {
+    await message.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(0x2D8A4E)
+          .setTitle("Permission denied")
+          .setDescription("This command can only be used by the bot owner."),
+      ],
+    });
+    return;
+  }
+
+  if (command.requireElevated !== false && command.requireElevated.length > 0) {
+    const guild = message.guild;
+    if (!guild) {
+      await message.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0x2D8A4E)
+            .setTitle("Server only")
+            .setDescription("This command can only be used in a server."),
+        ],
+      });
+      return;
+    }
+    const member = await guild.fetchMember(message.author.id);
+    const missing = command.requireElevated.filter(
+      (p) => !member.permissions.has(Permissions[p])
+    );
+    if (missing.length > 0) {
+      await message.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0x2D8A4E)
+            .setTitle("Permission denied")
+            .setDescription(
+              `You need: ${missing.map((p) => Permissions[p]).join(", ")}`
+            ),
+        ],
+      });
+      return;
+    }
+  }
+
+  try {
+    await command.run(args, message);
+  } catch (err) {
+    console.error(`Error running command "${commandName}":`, err);
+    await message.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(0x2D8A4E)
+          .setTitle("Error")
+          .setDescription("Something went wrong while running that command."),
+      ],
+    });
+  }
 }
 
 export default CommandHandler;

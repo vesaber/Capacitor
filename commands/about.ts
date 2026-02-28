@@ -10,6 +10,7 @@ const command: CommandSchema = {
     await message.reply({
       embeds: [
         new EmbedBuilder()
+          .setColor(0x2D8A4E)
           .setTitle("Capacitor v0.1 beta")
           .setDescription("uhhhhhh this is just an example command for now"),
       ],

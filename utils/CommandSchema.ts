@@ -1,6 +1,6 @@
 import { Message } from "@fluxerjs/core";
 
-enum Permissions {
+export enum Permissions {
   ManageRoles,
   BanMembers,
   ManageNicknames,
@@ -32,7 +32,7 @@ enum Permissions {
   PinMessages,
   ReadMessageHistory,
   UseExternalStickers,
-  TimeoutMembers,
+  ModerateMembers,
   StreamVideo,
   MuteMembers,
   SetVoiceRegion,
