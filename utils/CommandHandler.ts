@@ -76,13 +76,13 @@ export async function CommandHandler(message: Message) {
   try {
     await command.run(args, message);
   } catch (err) {
-    console.error(`Error running command "${commandName}":`, err);
+    console.error(`[cmd:${commandName}]`, err);
     await message.reply({
       embeds: [
         new EmbedBuilder()
-          .setColor(0x2D8A4E)
-          .setTitle("Error")
-          .setDescription("Something went wrong while running that command."),
+          .setColor(0xff0000)
+          .setTitle(`Error in \`c!${commandName}\``)
+          .setDescription(`\`\`\`\n${String(err)}\n\`\`\``),
       ],
     });
   }
