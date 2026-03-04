@@ -7,7 +7,6 @@ const client = new Client({
   intents: 0,
   rest: {
     // api: "https://fluxer.exeli.us/api" max come join us here (ur gonna be lonely) because fluxer fluxes up
-    api: "https://fluxer.exeli.us/api"
   },
 });
 
