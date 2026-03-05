@@ -105,6 +105,16 @@ export async function addBalance(guildId: string, userId: string, amount: number
   return row.balance;
 }
 
+export async function deleteBalance(guildId: string, userId: string, amount: number): Promise<number> {
+  const [row] = await UserBalance.findOrCreate({
+    where: { guild_id: guildId, user_id: userId },
+    defaults: { balance: 0, last_daily: null },
+  });
+  row.balance = Math.max(0, row.balance - amount);
+  await row.save();
+  return row.balance;
+}
+
 export async function transferBalance(
   guildId: string,
   fromId: string,
