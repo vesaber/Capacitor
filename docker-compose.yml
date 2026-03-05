@@ -1,0 +1,8 @@
+services:
+  capacitor:
+    image: vesaber/capacitor:latest
+    build: .
+    env_file: .env
+    volumes:
+      - ./data.db:/app/data.db
+    restart: unless-stopped
