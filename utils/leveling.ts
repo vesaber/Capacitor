@@ -216,19 +216,134 @@ export async function generateRankCard(opts: {
   return { buffer: canvas.toBuffer("image/png"), animated: false };
 }
 
+export async function generateBalanceCard(opts: {
+  user: User;
+  bannerHash: string | null;
+  balance: number;
+  rank: number;
+}): Promise<{ buffer: Buffer; animated: boolean }> {
+  const { user, balance, rank } = opts;
+  const bannerUrl = fluxerBannerURL(user.id, opts.bannerHash, 1024);
+  const avatarUrl = fluxerDisplayAvatarURL(user, 256);
+
+  const [bannerBuf, avatarBuf] = await Promise.all([
+    bannerUrl ? fetchImageBuffer(bannerUrl) : Promise.resolve(null),
+    fetchImageBuffer(avatarUrl),
+  ]);
+
+  const [bannerFrames, avatarFrames] = await Promise.all([
+    bannerBuf ? extractFrames(bannerBuf) : Promise.resolve(null),
+    avatarBuf ? extractFrames(avatarBuf) : Promise.resolve(null),
+  ]);
+
+  const W = 1250;
+  const H = 400;
+
+  const canvas = createCanvas(W, H);
+  const ctx = canvas.getContext("2d");
+
+  let avatarImg: Awaited<ReturnType<typeof loadImage>> | null = null;
+  const avatarFirstFrame = avatarFrames ? avatarFrames.frames[0]! : avatarBuf;
+  if (avatarFirstFrame) {
+    try { avatarImg = await loadImage(avatarFirstFrame); } catch {}
+  }
+
+  const drawCard = async (bgBuf: Buffer | null) => {
+    if (bgBuf) {
+      try {
+        ctx.drawImage(await loadImage(bgBuf), 0, 0, W, H);
+      } catch (err) {
+        console.warn("[balance] banner frame draw failed:", err);
+        ctx.fillStyle = "#1e1e2e";
+        ctx.fillRect(0, 0, W, H);
+      }
+    } else {
+      ctx.fillStyle = "#1e1e2e";
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    ctx.fillStyle = "rgba(0,0,0,0.60)";
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#cdd6f4";
+    ctx.font = "bold 58px sans-serif";
+    ctx.fillText(String(balance), W - 36, 80);
+    ctx.fillStyle = "#a6adc8";
+    ctx.font = "bold 34px sans-serif";
+    ctx.fillText("coins", W - 36, 122);
+    ctx.fillStyle = "#6c7086";
+    ctx.font = "bold 28px sans-serif";
+    ctx.fillText(rank > 0 ? `Rank #${rank}` : "Unranked", W - 36, 160);
+    ctx.textAlign = "left";
+
+    const avatarSize = 150;
+    const avatarCY = H - avatarSize / 2 - 20;
+    const ax = AVATAR_X;
+    const ay = avatarCY - avatarSize / 2;
+
+    ctx.fillStyle = "#1e1e2e";
+    ctx.beginPath();
+    ctx.arc(ax + avatarSize / 2, avatarCY, avatarSize / 2 + 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(ax + avatarSize / 2, avatarCY, avatarSize / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    if (avatarImg) {
+      ctx.drawImage(avatarImg, ax, ay, avatarSize, avatarSize);
+    } else {
+      ctx.fillStyle = "#45475a";
+      ctx.fillRect(ax, ay, avatarSize, avatarSize);
+    }
+    ctx.restore();
+
+    const textX = AVATAR_X + avatarSize + 20;
+
+    ctx.fillStyle = "#cdd6f4";
+    ctx.font = "bold 56px sans-serif";
+    ctx.fillText(user.globalName ?? user.username, textX, avatarCY - 12);
+    ctx.fillStyle = "#a6adc8";
+    ctx.font = "34px sans-serif";
+    ctx.fillText(`@${user.username}`, textX, avatarCY + 34);
+  };
+
+  const frames = bannerFrames ?? avatarFrames;
+
+  if (frames) {
+    const gif = GIFEncoder();
+    for (let i = 0; i < frames.frames.length; i++) {
+      const bgBuf = bannerFrames ? frames.frames[i]! : (bannerBuf ?? null);
+      await drawCard(bgBuf);
+      encodeGIF(ctx, W, H, gif, frames.delays[i] ?? 100);
+    }
+    gif.finish();
+    return { buffer: Buffer.from(gif.bytes()), animated: true };
+  }
+
+  await drawCard(bannerBuf);
+  return { buffer: canvas.toBuffer("image/png"), animated: false };
+}
+
 const RANK_COLORS: Record<number, string> = { 1: "#FFD700", 2: "#C0C0C0", 3: "#CD7F32" };
-const LB_W = 900;
-const LB_ROW_H = 72;
-const LB_HEADER_H = 80;
-const LB_PADDING = 20;
-const LB_AVATAR_SIZE = 44;
+const LB_W = 1000;
+const LB_ROW_H = 84;
+const LB_HEADER_H = 90;
+const LB_PADDING = 24;
+const LB_AVATAR_SIZE = 52;
+
+type XPEntry = { user: User; xp: number; level: number; rank: number; isYou: boolean; bannerHash: string | null };
+type EcoEntry = { user: User; balance: number; rank: number; isYou: boolean; bannerHash: string | null };
 
 export async function generateLeaderboardCard(opts: {
-  entries: Array<{ user: User; xp: number; level: number; rank: number; isYou: boolean; bannerHash: string | null }>;
+  entries: XPEntry[] | EcoEntry[];
   page: number;
   totalPages: number;
+  mode?: "xp" | "economy";
 }): Promise<Buffer> {
-  const { entries, page, totalPages } = opts;
+  const { entries, page, totalPages, mode = "xp" } = opts;
   const H = LB_HEADER_H + entries.length * LB_ROW_H + LB_PADDING;
 
   const [avatarBufs, bannerBufs] = await Promise.all([
@@ -246,19 +361,23 @@ export async function generateLeaderboardCard(opts: {
   ctx.fillRect(0, 0, LB_W, H);
 
   ctx.fillStyle = "#cdd6f4";
-  ctx.font = "bold 36px sans-serif";
-  ctx.fillText("Leaderboard", 24, 52);
-  ctx.fillStyle = "#a6adc8";
-  ctx.font = "24px sans-serif";
+  ctx.font = "bold 38px sans-serif";
+  ctx.fillText("Leaderboard", 24, 58);
+
   ctx.textAlign = "right";
-  ctx.fillText(`Page ${page} / ${totalPages}`, LB_W - 24, 52);
+  ctx.fillStyle = mode === "economy" ? "#f9e2af" : "#89b4fa";
+  ctx.font = "bold 22px sans-serif";
+  ctx.fillText(mode === "economy" ? "Coins" : "XP", LB_W - 24, 38);
+  ctx.fillStyle = "#585b70";
+  ctx.font = "22px sans-serif";
+  ctx.fillText(`page ${page} / ${totalPages}`, LB_W - 24, 66);
   ctx.textAlign = "left";
 
   ctx.fillStyle = "#313244";
   ctx.fillRect(0, LB_HEADER_H, LB_W, 2);
 
   for (let i = 0; i < entries.length; i++) {
-    const { user, xp, level, rank, isYou } = entries[i]!;
+    const { user, rank, isYou } = entries[i]!;
     const rowY = LB_HEADER_H + i * LB_ROW_H;
     const midY = rowY + LB_ROW_H / 2;
 
@@ -280,17 +399,34 @@ export async function generateLeaderboardCard(opts: {
       } catch {}
     }
 
-    ctx.fillStyle = bannerBuf ? "rgba(0,0,0,0.60)" : (isYou ? "rgba(137,180,250,0.12)" : (i % 2 === 1 ? "rgba(255,255,255,0.03)" : "transparent"));
+    ctx.fillStyle = bannerBuf ? "rgba(0,0,0,0.60)" : (isYou ? "rgba(137,180,250,0.10)" : (i % 2 === 1 ? "rgba(255,255,255,0.03)" : "transparent"));
     ctx.fillRect(0, rowY, LB_W, LB_ROW_H);
 
+    // left accent strip for top 3
+    const accentColor = RANK_COLORS[rank];
+    if (accentColor) {
+      ctx.fillStyle = accentColor;
+      ctx.fillRect(0, rowY, 4, LB_ROW_H);
+    }
+
     ctx.font = "bold 26px sans-serif";
-    ctx.fillStyle = RANK_COLORS[rank] ?? "#a6adc8";
+    ctx.fillStyle = accentColor ?? "#585b70";
     ctx.textAlign = "right";
-    ctx.fillText(`#${rank}`, 68, midY + 9);
+    ctx.fillText(`#${rank}`, 72, midY + 9);
     ctx.textAlign = "left";
 
-    const ax = 80;
+    const ax = 84;
     const ay = midY - LB_AVATAR_SIZE / 2;
+
+    // avatar ring for top 3
+    if (accentColor) {
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(ax + LB_AVATAR_SIZE / 2, midY, LB_AVATAR_SIZE / 2 + 3, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
     ctx.save();
     ctx.beginPath();
     ctx.arc(ax + LB_AVATAR_SIZE / 2, midY, LB_AVATAR_SIZE / 2, 0, Math.PI * 2);
@@ -311,7 +447,7 @@ export async function generateLeaderboardCard(opts: {
     }
     ctx.restore();
 
-    const nameX = ax + LB_AVATAR_SIZE + 14;
+    const nameX = ax + LB_AVATAR_SIZE + 16;
     ctx.fillStyle = isYou ? "#89b4fa" : "#cdd6f4";
     ctx.font = "bold 26px sans-serif";
     ctx.fillText(user.globalName ?? user.username, nameX, midY - 4);
@@ -322,10 +458,19 @@ export async function generateLeaderboardCard(opts: {
     ctx.textAlign = "right";
     ctx.fillStyle = "#cdd6f4";
     ctx.font = "bold 24px sans-serif";
-    ctx.fillText(`Level ${level}`, LB_W - 24, midY - 4);
-    ctx.fillStyle = "#a6adc8";
-    ctx.font = "20px sans-serif";
-    ctx.fillText(`${xp} XP`, LB_W - 24, midY + 22);
+    if (mode === "economy") {
+      const eco = entries[i] as EcoEntry;
+      ctx.fillText(eco.balance.toLocaleString(), LB_W - 24, midY - 4);
+      ctx.fillStyle = "#a6adc8";
+      ctx.font = "20px sans-serif";
+      ctx.fillText("coins", LB_W - 24, midY + 22);
+    } else {
+      const xpEntry = entries[i] as XPEntry;
+      ctx.fillText(`Level ${xpEntry.level}`, LB_W - 24, midY - 4);
+      ctx.fillStyle = "#a6adc8";
+      ctx.font = "20px sans-serif";
+      ctx.fillText(`${xpEntry.xp} XP`, LB_W - 24, midY + 22);
+    }
     ctx.textAlign = "left";
 
     ctx.fillStyle = "#313244";

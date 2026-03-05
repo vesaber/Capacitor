@@ -62,8 +62,110 @@ UserLevel.init(
   }
 );
 
+export class UserBalance extends Model {
+  declare guild_id: string;
+  declare user_id: string;
+  declare balance: number;
+  declare last_daily: Date | null;
+}
+
+UserBalance.init(
+  {
+    guild_id: { type: DataTypes.STRING, allowNull: false },
+    user_id: { type: DataTypes.STRING, allowNull: false },
+    balance: { type: DataTypes.INTEGER, defaultValue: 0 },
+    last_daily: { type: DataTypes.DATE, allowNull: true },
+  },
+  {
+    sequelize,
+    modelName: "UserBalance",
+    indexes: [{ unique: true, fields: ["guild_id", "user_id"] }],
+  }
+);
+
 export async function initDatabase(): Promise<void> {
   await sequelize.sync();
+}
+
+export async function getBalance(guildId: string, userId: string): Promise<number> {
+  const [row] = await UserBalance.findOrCreate({
+    where: { guild_id: guildId, user_id: userId },
+    defaults: { balance: 0, last_daily: null },
+  });
+  return row.balance;
+}
+
+export async function addBalance(guildId: string, userId: string, amount: number): Promise<number> {
+  const [row] = await UserBalance.findOrCreate({
+    where: { guild_id: guildId, user_id: userId },
+    defaults: { balance: 0, last_daily: null },
+  });
+  row.balance = Math.max(0, row.balance + amount);
+  await row.save();
+  return row.balance;
+}
+
+export async function transferBalance(
+  guildId: string,
+  fromId: string,
+  toId: string,
+  amount: number
+): Promise<{ fromBalance: number; toBalance: number }> {
+  const [fromRow] = await UserBalance.findOrCreate({
+    where: { guild_id: guildId, user_id: fromId },
+    defaults: { balance: 0, last_daily: null },
+  });
+  if (fromRow.balance < amount) {
+    throw new Error("Insufficient balance");
+  }
+  const [toRow] = await UserBalance.findOrCreate({
+    where: { guild_id: guildId, user_id: toId },
+    defaults: { balance: 0, last_daily: null },
+  });
+  fromRow.balance -= amount;
+  toRow.balance += amount;
+  await Promise.all([fromRow.save(), toRow.save()]);
+  return { fromBalance: fromRow.balance, toBalance: toRow.balance };
+}
+
+const DAILY_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+
+export async function claimDaily(
+  guildId: string,
+  userId: string
+): Promise<{ coins: number; nextDaily: Date } | null> {
+  const [row] = await UserBalance.findOrCreate({
+    where: { guild_id: guildId, user_id: userId },
+    defaults: { balance: 0, last_daily: null },
+  });
+  const now = new Date();
+  if (row.last_daily && now.getTime() - row.last_daily.getTime() < DAILY_COOLDOWN_MS) {
+    return null;
+  }
+  const coins = Math.floor(Math.random() * 101) + 150;
+  row.balance += coins;
+  row.last_daily = now;
+  await row.save();
+  return { coins, nextDaily: new Date(now.getTime() + DAILY_COOLDOWN_MS) };
+}
+
+export async function getEconomyLeaderboard(
+  guildId: string
+): Promise<Array<{ user_id: string; balance: number }>> {
+  const rows = await UserBalance.findAll({
+    where: { guild_id: guildId },
+    order: [["balance", "DESC"]],
+  });
+  return rows.map((r) => ({ user_id: r.user_id, balance: r.balance }));
+}
+
+export async function getEconomyRank(guildId: string, userId: string): Promise<number> {
+  const target = await UserBalance.findOne({ where: { guild_id: guildId, user_id: userId } });
+  if (!target) return -1;
+  const above = await UserBalance.count({
+    where: { guild_id: guildId, balance: { [Op.gt]: target.balance } },
+  });
+  return above + 1;
 }
 
 export async function getUserLevel(

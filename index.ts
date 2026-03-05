@@ -35,3 +35,8 @@ await initDatabase();
 await client.login(process.env.FLUXER_BOT_TOKEN!);
 
 // Shoutout max for the headstart
+
+// TODO: Better "Ready!" output
+// TODO: Roadmap
+// TODO: Make a CONTRIBUTING.md
+// TODO: idk

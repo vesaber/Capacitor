@@ -9,5 +9,8 @@ import unwarn from "./unwarn";
 import warnings from "./warnings";
 import rank from "./rank";
 import leaderboard from "./leaderboard";
+import balance from "./balance";
+import daily from "./daily";
+import give from "./give";
 
-export { about, kick, ban, unban, timeout, untimeout, warn, unwarn, warnings, rank, leaderboard };
+export { about, kick, ban, unban, timeout, untimeout, warn, unwarn, warnings, rank, leaderboard, balance, daily, give };
