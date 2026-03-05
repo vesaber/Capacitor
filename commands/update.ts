@@ -46,6 +46,14 @@ const command: CommandSchema = {
     spawnSync("docker", ["compose", "-f", COMPOSE_FILE, "up", "-d"], {
       encoding: "utf8",
     });
+
+    await message.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(0x2D8A4E)
+          .setDescription("Restarted!"),
+      ],
+    });
   },
 };
 

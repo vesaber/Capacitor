@@ -5,6 +5,5 @@ services:
     volumes:
       - ./data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
-    group_add:
-      - "989"
+
     restart: unless-stopped
