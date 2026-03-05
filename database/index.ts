@@ -83,6 +83,39 @@ UserBalance.init(
   }
 );
 
+export class Whitelist extends Model {
+  declare guild_id: string;
+  declare user_id: string;
+}
+
+Whitelist.init(
+  {
+    guild_id: { type: DataTypes.STRING, allowNull: false },
+    user_id: { type: DataTypes.STRING, allowNull: false },
+  },
+  {
+    sequelize,
+    modelName: "Whitelist",
+    indexes: [{ unique: true, fields: ["guild_id", "user_id"] }],
+  }
+);
+
+export async function isWhitelisted(guildId: string, userId: string): Promise<boolean> {
+  return (await Whitelist.findOne({ where: { guild_id: guildId, user_id: userId } })) !== null;
+}
+
+export async function addToWhitelist(guildId: string, userId: string): Promise<void> {
+  await Whitelist.findOrCreate({ where: { guild_id: guildId, user_id: userId } });
+}
+
+export async function removeFromWhitelist(guildId: string, userId: string): Promise<boolean> {
+  return (await Whitelist.destroy({ where: { guild_id: guildId, user_id: userId } })) > 0;
+}
+
+export async function getWhitelist(guildId: string): Promise<string[]> {
+  return (await Whitelist.findAll({ where: { guild_id: guildId } })).map((r) => r.user_id);
+}
+
 export async function initDatabase(): Promise<void> {
   await sequelize.sync();
 }

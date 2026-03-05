@@ -43,6 +43,7 @@ export type CommandSchema = {
   description: string;
   requireElevated: Permissions[] | false;
   requireOwner?: boolean;
+  requireWhitelist?: boolean;
   params?: string;
   additionalInfo?: string;
   run: (params: string[], message: Message) => Promise<void>;
