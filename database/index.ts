@@ -2,7 +2,7 @@ import { Sequelize, DataTypes, Model, Op } from "sequelize";
 
 const sequelize = new Sequelize({
   dialect: "sqlite",
-  storage: "./data.db",
+  storage: "./data/data.db",
   logging: false,
 });
 

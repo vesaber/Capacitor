@@ -3,5 +3,5 @@ services:
     image: vesaber/capacitor:latest
     env_file: .env
     volumes:
-      - ./data.db:/app/data.db
+      - ./data:/app/data
     restart: unless-stopped
