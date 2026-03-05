@@ -133,10 +133,10 @@ export async function generateRankCard(opts: {
 
     ctx.textAlign = "right";
     ctx.fillStyle = "#cdd6f4";
-    ctx.font = "bold 58px sans-serif";
+    ctx.font = "bold 58px Inter";
     ctx.fillText(`Level ${level}`, W - 36, 80);
     ctx.fillStyle = "#a6adc8";
-    ctx.font = "bold 34px sans-serif";
+    ctx.font = "bold 34px Inter";
     ctx.fillText(`Rank #${rank}`, W - 36, 128);
     ctx.textAlign = "left";
 
@@ -165,10 +165,10 @@ export async function generateRankCard(opts: {
     const midY = H / 2;
 
     ctx.fillStyle = "#cdd6f4";
-    ctx.font = "bold 50px sans-serif";
+    ctx.font = "bold 50px Inter";
     ctx.fillText(user.globalName ?? user.username, textX, midY - 10);
     ctx.fillStyle = "#a6adc8";
-    ctx.font = "30px sans-serif";
+    ctx.font = "30px Inter";
     ctx.fillText(`@${user.username}`, textX, midY + 36);
 
     const barX = 18;
@@ -192,7 +192,7 @@ export async function generateRankCard(opts: {
     }
 
     ctx.fillStyle = "#a6adc8";
-    ctx.font = "24px sans-serif";
+    ctx.font = "24px Inter";
     ctx.textAlign = "right";
     ctx.fillText(`${current} / ${required} XP`, W - 36, barY - 8);
     ctx.textAlign = "left";
@@ -267,13 +267,13 @@ export async function generateBalanceCard(opts: {
 
     ctx.textAlign = "right";
     ctx.fillStyle = "#cdd6f4";
-    ctx.font = "bold 58px sans-serif";
+    ctx.font = "bold 58px Inter";
     ctx.fillText(String(balance), W - 36, 80);
     ctx.fillStyle = "#a6adc8";
-    ctx.font = "bold 34px sans-serif";
+    ctx.font = "bold 34px Inter";
     ctx.fillText("coins", W - 36, 122);
     ctx.fillStyle = "#6c7086";
-    ctx.font = "bold 28px sans-serif";
+    ctx.font = "bold 28px Inter";
     ctx.fillText(rank > 0 ? `Rank #${rank}` : "Unranked", W - 36, 160);
     ctx.textAlign = "left";
 
@@ -303,10 +303,10 @@ export async function generateBalanceCard(opts: {
     const textX = AVATAR_X + avatarSize + 20;
 
     ctx.fillStyle = "#cdd6f4";
-    ctx.font = "bold 56px sans-serif";
+    ctx.font = "bold 56px Inter";
     ctx.fillText(user.globalName ?? user.username, textX, avatarCY - 12);
     ctx.fillStyle = "#a6adc8";
-    ctx.font = "34px sans-serif";
+    ctx.font = "34px Inter";
     ctx.fillText(`@${user.username}`, textX, avatarCY + 34);
   };
 
@@ -361,15 +361,15 @@ export async function generateLeaderboardCard(opts: {
   ctx.fillRect(0, 0, LB_W, H);
 
   ctx.fillStyle = "#cdd6f4";
-  ctx.font = "bold 38px sans-serif";
+  ctx.font = "bold 38px Inter";
   ctx.fillText("Leaderboard", 24, 58);
 
   ctx.textAlign = "right";
   ctx.fillStyle = mode === "economy" ? "#f9e2af" : "#89b4fa";
-  ctx.font = "bold 22px sans-serif";
+  ctx.font = "bold 22px Inter";
   ctx.fillText(mode === "economy" ? "Coins" : "XP", LB_W - 24, 38);
   ctx.fillStyle = "#585b70";
-  ctx.font = "22px sans-serif";
+  ctx.font = "22px Inter";
   ctx.fillText(`page ${page} / ${totalPages}`, LB_W - 24, 66);
   ctx.textAlign = "left";
 
@@ -409,7 +409,7 @@ export async function generateLeaderboardCard(opts: {
       ctx.fillRect(0, rowY, 4, LB_ROW_H);
     }
 
-    ctx.font = "bold 26px sans-serif";
+    ctx.font = "bold 26px Inter";
     ctx.fillStyle = accentColor ?? "#585b70";
     ctx.textAlign = "right";
     ctx.fillText(`#${rank}`, 72, midY + 9);
@@ -449,26 +449,26 @@ export async function generateLeaderboardCard(opts: {
 
     const nameX = ax + LB_AVATAR_SIZE + 16;
     ctx.fillStyle = isYou ? "#89b4fa" : "#cdd6f4";
-    ctx.font = "bold 26px sans-serif";
+    ctx.font = "bold 26px Inter";
     ctx.fillText(user.globalName ?? user.username, nameX, midY - 4);
     ctx.fillStyle = "#6c7086";
-    ctx.font = "20px sans-serif";
+    ctx.font = "20px Inter";
     ctx.fillText(`@${user.username}`, nameX, midY + 22);
 
     ctx.textAlign = "right";
     ctx.fillStyle = "#cdd6f4";
-    ctx.font = "bold 24px sans-serif";
+    ctx.font = "bold 24px Inter";
     if (mode === "economy") {
       const eco = entries[i] as EcoEntry;
       ctx.fillText(eco.balance.toLocaleString(), LB_W - 24, midY - 4);
       ctx.fillStyle = "#a6adc8";
-      ctx.font = "20px sans-serif";
+      ctx.font = "20px Inter";
       ctx.fillText("coins", LB_W - 24, midY + 22);
     } else {
       const xpEntry = entries[i] as XPEntry;
       ctx.fillText(`Level ${xpEntry.level}`, LB_W - 24, midY - 4);
       ctx.fillStyle = "#a6adc8";
-      ctx.font = "20px sans-serif";
+      ctx.font = "20px Inter";
       ctx.fillText(`${xpEntry.xp} XP`, LB_W - 24, midY + 22);
     }
     ctx.textAlign = "left";
