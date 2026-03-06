@@ -1,4 +1,5 @@
 import { Sequelize, DataTypes, Model, Op } from "sequelize";
+import type { Gamemodes } from "../utils/gamemodes";
 
 const sequelize = new Sequelize({
   dialect: "sqlite",
@@ -99,6 +100,37 @@ Whitelist.init(
     indexes: [{ unique: true, fields: ["guild_id", "user_id"] }],
   }
 );
+export class Game extends Model {
+  declare id: string;
+  declare gamemode: Gamemodes;
+  declare ongoing: boolean;
+  declare message_id: string;
+  declare guild_id: string;
+}
+
+
+Game.init(
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    gamemode: { type: DataTypes.STRING, allowNull: false },
+    ongoing: { type: DataTypes.BOOLEAN, allowNull: false },
+    guild_id: { type: DataTypes.STRING, allowNull: false },
+    message_id: { type: DataTypes.STRING, allowNull: false },
+  },
+  {
+    sequelize,
+    modelName: "Game",
+    indexes: [{ unique: true, fields: ["guild_id", "user_id"] }],
+  },
+);
+
+export async function getOngoingGames(guildId: string): Promise<void> {
+  return Game.findAll({ where: { guild_id: guildId, ongoing: true } })
+}
 
 export async function isWhitelisted(guildId: string, userId: string): Promise<boolean> {
   return (await Whitelist.findOne({ where: { guild_id: guildId, user_id: userId } })) !== null;
