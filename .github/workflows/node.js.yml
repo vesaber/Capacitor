@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   build:
@@ -36,4 +36,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: vesaber/capacitor:latest
+          tags: vesaber/capacitor:${{ github.ref_name == 'main' && 'latest' || github.ref_name }}
