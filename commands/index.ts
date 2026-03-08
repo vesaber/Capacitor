@@ -15,5 +15,8 @@ import give from "./give";
 import coinflip from "./coinflip";
 import whitelist from "./whitelist";
 import update from "./update";
+import eightball from "./8ball";
+import coin from "./coin";
+import roll from "./roll";
 
-export { about, kick, ban, unban, timeout, untimeout, warn, unwarn, warnings, rank, leaderboard, balance, daily, give, coinflip, whitelist, update };
+export { about, kick, ban, unban, timeout, untimeout, warn, unwarn, warnings, rank, leaderboard, balance, daily, give, coinflip, whitelist, update, eightball, coin, roll };
