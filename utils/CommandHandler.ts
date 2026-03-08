@@ -2,7 +2,6 @@ import { Message, EmbedBuilder } from "@fluxerjs/core";
 import * as commands from "../commands";
 import type { CommandSchema } from "./CommandSchema";
 import { Permissions } from "./CommandSchema";
-import { isWhitelisted } from "../database";
 
 const PREFIX = "c!";
 
@@ -40,23 +39,6 @@ export async function CommandHandler(message: Message) {
       ],
     });
     return;
-  }
-
-  if (command.requireWhitelist && message.author.id !== process.env.OWNER_ID) {
-    const guild = message.guildId != null ? (message.guild ?? await message.resolveGuild()) : null;
-    const isGuildOwner = guild?.ownerId === message.author.id;
-    const allowed = isGuildOwner || (message.guildId != null && await isWhitelisted(message.guildId, message.author.id));
-    if (!allowed) {
-      await message.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(0x2D8A4E)
-            .setTitle("Permission denied")
-            .setDescription("You're not whitelisted to use this command."),
-        ],
-      });
-      return;
-    }
   }
 
   if (command.requireElevated !== false && command.requireElevated.length > 0) {

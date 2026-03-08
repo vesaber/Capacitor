@@ -16,5 +16,7 @@ import coinflip from "./coinflip";
 import eightball from "./8ball";
 import coin from "./coin";
 import roll from "./roll";
+import ping from "./ping";
+import help from "./help";
 
-export { about, kick, ban, unban, timeout, untimeout, warn, unwarn, warnings, rank, leaderboard, balance, daily, give, coinflip, eightball, coin, roll };
+export { about, kick, ban, unban, timeout, untimeout, warn, unwarn, warnings, rank, leaderboard, balance, daily, give, coinflip, eightball, coin, roll, ping, help };
