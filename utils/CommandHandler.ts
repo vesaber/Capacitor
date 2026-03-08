@@ -29,18 +29,6 @@ export async function CommandHandler(message: Message) {
     return;
   }
 
-  if (command.requireOwner && message.author.id !== process.env.OWNER_ID) {
-    await message.reply({
-      embeds: [
-        new EmbedBuilder()
-          .setColor(0x2D8A4E)
-          .setTitle("Permission denied")
-          .setDescription("This command can only be used by the bot owner."),
-      ],
-    });
-    return;
-  }
-
   if (command.requireElevated !== false && command.requireElevated.length > 0) {
     const guild = message.guild;
     if (!guild) {
