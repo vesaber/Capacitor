@@ -44,7 +44,7 @@ export async function CommandHandler(message: Message) {
     }
     const member = await guild.fetchMember(message.author.id);
     const missing = command.requireElevated.filter(
-      (p) => !member.permissions.has(Permissions[p])
+      (p) => !member.permissions.has(Permissions[p] as Parameters<typeof member.permissions.has>[0])
     );
     if (missing.length > 0) {
       await message.reply({
