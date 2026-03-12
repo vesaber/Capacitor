@@ -38,5 +38,3 @@ await client.login(process.env.FLUXER_BOT_TOKEN!);
 
 // TODO: Better "Ready!" output
 // TODO: Roadmap
-// TODO: Make a CONTRIBUTING.md
-// TODO: idk
