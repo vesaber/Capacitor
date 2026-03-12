@@ -10,7 +10,12 @@ const client = new Client({
   },
 });
 
-client.on(Events.Ready, () => console.log("Ready!"));
+client.on(Events.Error, (err) => console.error("[Error]", err));
+client.on(Events.Ready, () => {
+  console.log(`Ready! Logged in as ${client.user?.username} (${client.user?.id})`);
+  console.log(`Guilds: ${client.guilds.size}`);
+  console.log(`REST API: ${(client.rest as any).options?.api ?? "default"}`);
+});
 client.on(Events.MessageCreate, async (message) => {
   CommandHandler(message);
 
@@ -32,9 +37,9 @@ client.on(Events.MessageCreate, async (message) => {
 });
 
 await initDatabase();
+console.log("Database ready. Connecting...");
 await client.login(process.env.FLUXER_BOT_TOKEN!);
+console.log("Login call returned.");
 
 // Shoutout max for the headstart
-
-// TODO: Better "Ready!" output
 // TODO: Roadmap
