@@ -12,11 +12,15 @@ import leaderboard from "./leaderboard";
 import balance from "./balance";
 import daily from "./daily";
 import give from "./give";
-import coinflip from "./coinflip";
 import eightball from "./8ball";
 import coin from "./coin";
 import roll from "./roll";
 import ping from "./ping";
 import help from "./help";
+import bet from "./bet";
+import blackjack from "./blackjack";
+import highlow from "./highlow";
+import roulette from "./roulette";
+import slots from "./slots";
 
-export { about, kick, ban, unban, timeout, untimeout, warn, unwarn, warnings, rank, leaderboard, balance, daily, give, coinflip, eightball, coin, roll, ping, help };
+export { about, kick, ban, unban, timeout, untimeout, warn, unwarn, warnings, rank, leaderboard, balance, daily, give, eightball, coin, roll, ping, help, bet, blackjack, highlow, roulette, slots };

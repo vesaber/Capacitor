@@ -7,8 +7,8 @@ const allCommands = () => Object.values(commands) as CommandSchema[];
 const CATEGORIES: { label: string; names: string[] }[] = [
   { label: "Moderation", names: ["kick", "ban", "unban", "timeout", "untimeout", "warn", "unwarn", "warnings"] },
   { label: "Economy",    names: ["balance", "daily", "give"] },
-  { label: "Gambling",   names: ["coinflip"] },
   { label: "Leveling",   names: ["rank", "leaderboard"] },
+  { label: "Gambling",   names: ["bet", "blackjack", "highlow", "roulette", "slots"] },
   { label: "Fun",        names: ["8ball", "coin", "roll"] },
   { label: "General",    names: ["about", "ping", "help"] },
 ];
