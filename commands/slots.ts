@@ -33,21 +33,22 @@ const command: CommandSchema = {
       return;
     }
 
-    const reels = [
-      SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]!,
-      SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]!,
-      SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]!,
+    const r = [
+      Math.floor(Math.random() * 36),
+      Math.floor(Math.random() * 36),
+      Math.floor(Math.random() * 36),
     ];
+    const reels = r.map(v => SYMBOLS[v % SYMBOLS.length]!);
 
     const display = `[ ${reels.join("  ")} ]`;
     let result: string;
     let newBalance: number;
 
-    if (reels[0] === reels[1] && reels[1] === reels[2]) {
+    if (r[0] === r[1] && r[1] === r[2]) {
       const win = amount * 9;
       newBalance = await addBalance(message.guildId, message.author.id, win);
       result = `🎰 **JACKPOT!** You win **${win}** coins!`;
-    } else if (reels[0] === reels[1] || reels[1] === reels[2] || reels[0] === reels[2]) {
+    } else if (r[0] === r[1] || r[1] === r[2] || r[0] === r[2]) {
       const win = Math.floor(amount * 0.5);
       newBalance = await addBalance(message.guildId, message.author.id, win);
       result = `Two of a kind! You win **${win}** coins.`;
