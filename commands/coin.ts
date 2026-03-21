@@ -3,6 +3,7 @@ import type { CommandSchema } from "../utils/CommandSchema";
 
 const command: CommandSchema = {
   name: "coin",
+  category: "Fun",
   description: "Flip a coin.",
   requireElevated: false,
 

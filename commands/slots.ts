@@ -6,6 +6,7 @@ const SYMBOLS = ["🍒", "🍋", "🍊", "🍇", "⭐", "💎"];
 
 const command: CommandSchema = {
   name: "slots",
+  category: "Gambling",
   description: "Spin the slot machine. 3-match pays 10x, 2-match pays 1.5x.",
   params: "<amount>",
   requireElevated: false,

@@ -5,6 +5,7 @@ import { parseMention } from "../utils/moderation";
 
 const command: CommandSchema = {
   name: "give",
+  category: "Economy",
   description: "Give coins to another user.",
   params: "<@user|id> <amount>",
   requireElevated: false,

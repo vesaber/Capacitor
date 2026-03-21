@@ -14,6 +14,7 @@ const HELP =
 
 const command: CommandSchema = {
   name: "roulette",
+  category: "Gambling",
   description: "Spin the roulette wheel.",
   params: "<amount> <bet>",
   requireElevated: false,

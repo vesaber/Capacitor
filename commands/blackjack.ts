@@ -53,6 +53,7 @@ async function resolve(k: string, game: BJGame, guildId: string, userId: string,
 
 const command: CommandSchema = {
   name: "blackjack",
+  category: "Gambling",
   description: "Play blackjack against the dealer.",
   params: "<amount | hit | stand | double>",
   requireElevated: false,

@@ -47,6 +47,7 @@ export class UserLevel extends Model {
   declare guild_id: string;
   declare user_id: string;
   declare xp: number;
+  declare opted_out: boolean;
 }
 
 UserLevel.init(
@@ -54,11 +55,44 @@ UserLevel.init(
     guild_id: { type: DataTypes.STRING, allowNull: false },
     user_id: { type: DataTypes.STRING, allowNull: false },
     xp: { type: DataTypes.INTEGER, defaultValue: 0 },
+    opted_out: { type: DataTypes.BOOLEAN, defaultValue: false },
   },
   {
     sequelize,
     modelName: "UserLevel",
     indexes: [{ unique: true, fields: ["guild_id", "user_id"] }],
+  }
+);
+
+export class GuildConfig extends Model {
+  declare guild_id: string;
+  declare level_channel_id: string | null;
+}
+
+GuildConfig.init(
+  {
+    guild_id: { type: DataTypes.STRING, primaryKey: true },
+    level_channel_id: { type: DataTypes.STRING, allowNull: true },
+  },
+  { sequelize, modelName: "GuildConfig" }
+);
+
+export class LevelRole extends Model {
+  declare guild_id: string;
+  declare level: number;
+  declare role_id: string;
+}
+
+LevelRole.init(
+  {
+    guild_id: { type: DataTypes.STRING, allowNull: false },
+    level: { type: DataTypes.INTEGER, allowNull: false },
+    role_id: { type: DataTypes.STRING, allowNull: false },
+  },
+  {
+    sequelize,
+    modelName: "LevelRole",
+    indexes: [{ unique: true, fields: ["guild_id", "level"] }],
   }
 );
 
@@ -210,7 +244,7 @@ export async function getLeaderboard(
   guildId: string
 ): Promise<Array<{ user_id: string; xp: number; level: number }>> {
   const rows = await UserLevel.findAll({
-    where: { guild_id: guildId },
+    where: { guild_id: guildId, opted_out: false },
     order: [["xp", "DESC"]],
   });
   return rows.map((r) => ({ user_id: r.user_id, xp: r.xp, level: computeLevel(r.xp) }));
@@ -220,7 +254,7 @@ export async function getRank(guildId: string, userId: string): Promise<number> 
   const target = await UserLevel.findOne({ where: { guild_id: guildId, user_id: userId } });
   if (!target) return -1;
   const above = await UserLevel.count({
-    where: { guild_id: guildId, xp: { [Op.gt]: target.xp } },
+    where: { guild_id: guildId, xp: { [Op.gt]: target.xp }, opted_out: false },
   });
   return above + 1;
 }
@@ -250,4 +284,49 @@ export async function getActiveWarns(guildId: string, userId: string): Promise<W
 export async function deleteWarn(guildId: string, warnId: string): Promise<boolean> {
   const deleted = await Warn.destroy({ where: { id: warnId, guildId } });
   return deleted > 0;
+}
+
+export async function setOptOut(guildId: string, userId: string, value: boolean): Promise<void> {
+  const [row] = await UserLevel.findOrCreate({
+    where: { guild_id: guildId, user_id: userId },
+    defaults: { xp: 0, opted_out: value },
+  });
+  row.opted_out = value;
+  await row.save();
+}
+
+export async function isOptedOut(guildId: string, userId: string): Promise<boolean> {
+  const row = await UserLevel.findOne({ where: { guild_id: guildId, user_id: userId } });
+  return row?.opted_out ?? false;
+}
+
+export async function getLevelChannel(guildId: string): Promise<string | null> {
+  const row = await GuildConfig.findOne({ where: { guild_id: guildId } });
+  return row?.level_channel_id ?? null;
+}
+
+export async function setLevelChannel(guildId: string, channelId: string | null): Promise<void> {
+  await GuildConfig.upsert({ guild_id: guildId, level_channel_id: channelId });
+}
+
+export async function getLevelRole(guildId: string, level: number): Promise<string | null> {
+  const row = await LevelRole.findOne({ where: { guild_id: guildId, level } });
+  return row?.role_id ?? null;
+}
+
+export async function setLevelRole(guildId: string, level: number, roleId: string): Promise<void> {
+  await LevelRole.upsert({ guild_id: guildId, level, role_id: roleId });
+}
+
+export async function removeLevelRole(guildId: string, level: number): Promise<boolean> {
+  const deleted = await LevelRole.destroy({ where: { guild_id: guildId, level } });
+  return deleted > 0;
+}
+
+export async function getLevelRoles(guildId: string): Promise<Array<{ level: number; role_id: string }>> {
+  const rows = await LevelRole.findAll({
+    where: { guild_id: guildId },
+    order: [["level", "ASC"]],
+  });
+  return rows.map((r) => ({ level: r.level, role_id: r.role_id }));
 }

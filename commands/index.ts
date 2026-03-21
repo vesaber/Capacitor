@@ -22,5 +22,8 @@ import blackjack from "./blackjack";
 import highlow from "./highlow";
 import roulette from "./roulette";
 import slots from "./slots";
+import optout from "./optout";
+import levelchannel from "./levelchannel";
+import levelrole from "./levelrole";
 
-export { about, kick, ban, unban, timeout, untimeout, warn, unwarn, warnings, rank, leaderboard, balance, daily, give, eightball, coin, roll, ping, help, bet, blackjack, highlow, roulette, slots };
+export { about, kick, ban, unban, timeout, untimeout, warn, unwarn, warnings, rank, leaderboard, balance, daily, give, eightball, coin, roll, ping, help, bet, blackjack, highlow, roulette, slots, optout, levelchannel, levelrole };

@@ -4,6 +4,7 @@ import { getBalance, addBalance, deleteBalance } from "../database";
 
 const command: CommandSchema = {
   name: "bet",
+  category: "Gambling",
   description: "Roll a d6 and bet on the outcome. Correct guess pays 5x.",
   params: "<amount> <1-6>",
   requireElevated: false,

@@ -5,6 +5,7 @@ import { parseMention } from "../utils/moderation";
 
 const command: CommandSchema = {
   name: "unban",
+  category: "Moderation",
   description: "Unban a user from the server.",
   params: "<user-id>",
   requireElevated: [Permissions.BanMembers],
