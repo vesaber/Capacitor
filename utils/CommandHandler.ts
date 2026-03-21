@@ -42,21 +42,41 @@ export async function CommandHandler(message: Message) {
       });
       return;
     }
-    const member = await guild.fetchMember(message.author.id);
-    const perms = member.permissions.bitfield;
-    const missing = command.requireElevated.filter((p) => {
+    const [member, botMember] = await Promise.all([
+      guild.fetchMember(message.author.id),
+      guild.fetchMember(message.client.user!.id),
+    ]);
+
+    const userPerms = member.permissions.bitfield;
+    const botPerms = botMember.permissions.bitfield;
+
+    const missingUser = command.requireElevated.filter((p) => {
       const bit = PERM_BITS[Permissions[p]];
-      return bit !== undefined && (perms & bit) === 0n;
+      return bit !== undefined && (userPerms & bit) === 0n;
     });
-    if (missing.length > 0) {
+    if (missingUser.length > 0) {
       await message.reply({
         embeds: [
           new EmbedBuilder()
             .setColor(0x2D8A4E)
             .setTitle("Permission denied")
-            .setDescription(
-              `You need: ${missing.map((p) => Permissions[p]).join(", ")}`
-            ),
+            .setDescription(`You need: ${missingUser.map((p) => Permissions[p]).join(", ")}`),
+        ],
+      });
+      return;
+    }
+
+    const missingBot = command.requireElevated.filter((p) => {
+      const bit = PERM_BITS[Permissions[p]];
+      return bit !== undefined && (botPerms & bit) === 0n;
+    });
+    if (missingBot.length > 0) {
+      await message.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0x2D8A4E)
+            .setTitle("Missing bot permissions")
+            .setDescription(`The bot needs: ${missingBot.map((p) => Permissions[p]).join(", ")}`),
         ],
       });
       return;
