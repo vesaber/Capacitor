@@ -5,6 +5,7 @@ import { deleteWarn } from "../database";
 
 const command: CommandSchema = {
   name: "unwarn",
+  category: "Moderation",
   description: "Remove an active warning by ID.",
   params: "<warn-id>",
   requireElevated: [Permissions.ModerateMembers],

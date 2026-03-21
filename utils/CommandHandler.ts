@@ -1,7 +1,7 @@
 import { Message, EmbedBuilder } from "@fluxerjs/core";
 import * as commands from "../commands";
 import type { CommandSchema } from "./CommandSchema";
-import { Permissions } from "./CommandSchema";
+import { Permissions, PERM_BITS } from "./CommandSchema";
 
 const PREFIX = "c!";
 
@@ -43,9 +43,11 @@ export async function CommandHandler(message: Message) {
       return;
     }
     const member = await guild.fetchMember(message.author.id);
-    const missing = command.requireElevated.filter(
-      (p) => !member.permissions.has(Permissions[p] as Parameters<typeof member.permissions.has>[0])
-    );
+    const perms = member.permissions.bitfield;
+    const missing = command.requireElevated.filter((p) => {
+      const bit = PERM_BITS[Permissions[p]];
+      return bit !== undefined && (perms & bit) === 0n;
+    });
     if (missing.length > 0) {
       await message.reply({
         embeds: [

@@ -5,6 +5,7 @@ import { formatDuration } from "../utils/moderation";
 
 const command: CommandSchema = {
   name: "daily",
+  category: "Economy",
   description: "Claim your daily coins (150–250, 24h cooldown).",
   params: "",
   requireElevated: false,

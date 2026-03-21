@@ -28,6 +28,7 @@ const responses = [
 
 const command: CommandSchema = {
   name: "8ball",
+  category: "Fun",
   description: "Ask the magic 8-ball a question.",
   params: "<question>",
   requireElevated: false,

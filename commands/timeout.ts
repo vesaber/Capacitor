@@ -5,6 +5,7 @@ import { parseMention, parseDuration, formatDuration } from "../utils/moderation
 
 const command: CommandSchema = {
   name: "timeout",
+  category: "Moderation",
   description: "Temporarily time out a member.",
   params: "<@user|id> <duration> [reason...]",
   additionalInfo: "Duration examples: `10m`, `1h`, `2h30m`, `1d`",

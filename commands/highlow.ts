@@ -5,6 +5,7 @@ import { newDeck, cardRank, fmt } from "../utils/cards";
 
 const command: CommandSchema = {
   name: "highlow",
+  category: "Gambling",
   description: "Guess if the next card is higher or lower.",
   params: "<amount> <high|low>",
   requireElevated: false,

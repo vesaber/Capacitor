@@ -1,11 +1,12 @@
 import { EmbedBuilder } from "@fluxerjs/core";
 import type { CommandSchema } from "../utils/CommandSchema";
 import { parseMention } from "../utils/moderation";
-import { getUserLevel, getRank } from "../database";
+import { getUserLevel, getRank, isOptedOut } from "../database";
 import { generateRankCard } from "../utils/leveling";
 
 const command: CommandSchema = {
   name: "rank",
+  category: "Leveling",
   description: "Show your rank card (or another user's).",
   params: "[@user|id]",
   requireElevated: false,
@@ -50,6 +51,18 @@ const command: CommandSchema = {
       console.error("[rank] fetchWithProfile failed:", err);
       await message.reply({
         embeds: [new EmbedBuilder().setColor(0x2D8A4E).setDescription("User not found.")],
+      });
+      return;
+    }
+
+    if (await isOptedOut(message.guildId, targetUser.id)) {
+      const isSelf = targetUser.id === message.author.id;
+      await message.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0x2D8A4E)
+            .setDescription(isSelf ? "You have opted out of XP tracking in this server." : "This user has opted out of XP tracking."),
+        ],
       });
       return;
     }

@@ -6,6 +6,7 @@ import { getActiveWarns } from "../database";
 
 const command: CommandSchema = {
   name: "warnings",
+  category: "Moderation",
   description: "List active warnings for a member.",
   params: "<@user|id>",
   requireElevated: [Permissions.ModerateMembers],

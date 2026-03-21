@@ -3,6 +3,7 @@ import type { CommandSchema } from "../utils/CommandSchema";
 
 const command: CommandSchema = {
   name: "ping",
+  category: "General",
   description: "Check the bot's latency.",
   requireElevated: false,
 

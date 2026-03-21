@@ -6,6 +6,7 @@ import { createWarn } from "../database";
 
 const command: CommandSchema = {
   name: "warn",
+  category: "Moderation",
   description: "Issue a timed warning to a member.",
   params: "<@user|id> <duration> [reason...]",
   additionalInfo: "Duration examples: `1d`, `7d`, `1h`. The warn expires after this period.",

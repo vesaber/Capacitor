@@ -6,6 +6,7 @@ const MAX_SIDES = 1000;
 
 const command: CommandSchema = {
   name: "roll",
+  category: "Fun",
   description: "Roll dice. Format: NdN (e.g. 2d6). Default: 1d6.",
   params: "[NdN]",
   requireElevated: false,

@@ -1,41 +1,65 @@
 import { EmbedBuilder } from "@fluxerjs/core";
 import type { CommandSchema } from "../utils/CommandSchema";
+import { Permissions, PERM_BITS } from "../utils/CommandSchema";
 import * as commands from "./index";
 
 const allCommands = () => Object.values(commands) as CommandSchema[];
 
-const CATEGORIES: { label: string; names: string[] }[] = [
-  { label: "Moderation", names: ["kick", "ban", "unban", "timeout", "untimeout", "warn", "unwarn", "warnings"] },
-  { label: "Economy",    names: ["balance", "daily", "give"] },
-  { label: "Leveling",   names: ["rank", "leaderboard"] },
-  { label: "Gambling",   names: ["bet", "blackjack", "highlow", "roulette", "slots"] },
-  { label: "Fun",        names: ["8ball", "coin", "roll"] },
-  { label: "General",    names: ["about", "ping", "help"] },
-];
+const CATEGORY_ORDER = ["Moderation", "Economy", "Leveling", "Gambling", "Fun", "General"];
 
 const command: CommandSchema = {
   name: "help",
+  category: "General",
   description: "List all commands or get info on a specific one.",
   params: "[command]",
   requireElevated: false,
 
   async run(params, message) {
     if (params.length === 0) {
-      const cmds = allCommands();
+      let userPerms = 0n;
+      let botPerms = 0n;
+      if (message.guildId && message.guild) {
+        try {
+          const [member, botMember] = await Promise.all([
+            message.guild.fetchMember(message.author.id),
+            message.guild.fetchMember(message.client.user!.id),
+          ]);
+          userPerms = member.permissions.bitfield;
+          botPerms = botMember.permissions.bitfield;
+        } catch {}
+      }
+
+      const hasPerms = (perms: bigint, required: Permissions[]) =>
+        required.every((p) => {
+          const bit = PERM_BITS[Permissions[p]];
+          return bit === undefined || (perms & bit) !== 0n;
+        });
+
+      const canUse = (cmd: CommandSchema) => {
+        if (cmd.requireElevated === false) return true;
+        return hasPerms(userPerms, cmd.requireElevated) && hasPerms(botPerms, cmd.requireElevated);
+      };
+
+      const cmds = allCommands().filter(canUse);
+
+      const grouped = new Map<string, CommandSchema[]>();
+      for (const cmd of cmds) {
+        const cat = cmd.category ?? "Other";
+        if (!grouped.has(cat)) grouped.set(cat, []);
+        grouped.get(cat)!.push(cmd);
+      }
+
+      const known = CATEGORY_ORDER.filter((c) => grouped.has(c));
+      const extra = [...grouped.keys()].filter((c) => !CATEGORY_ORDER.includes(c)).sort();
+
       const embed = new EmbedBuilder()
         .setColor(0x2D8A4E)
         .setTitle("Capacitor Commands")
         .setDescription("Use `c!help <command>` for info on a specific command.");
 
-      for (const category of CATEGORIES) {
-        const lines = category.names
-          .map((name) => cmds.find((c) => c.name === name))
-          .filter((c): c is CommandSchema => c !== undefined)
-          .map((c) => `\`c!${c.name}\` — ${c.description}`);
-
-        if (lines.length > 0) {
-          embed.addFields({ name: category.label, value: lines.join("\n") });
-        }
+      for (const cat of [...known, ...extra]) {
+        const lines = grouped.get(cat)!.map((c) => `\`c!${c.name}\` — ${c.description}`);
+        embed.addFields({ name: cat, value: lines.join("\n") });
       }
 
       await message.reply({ embeds: [embed] });

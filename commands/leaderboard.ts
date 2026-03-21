@@ -7,6 +7,7 @@ const PAGE_SIZE = 10;
 
 const command: CommandSchema = {
   name: "leaderboard",
+  category: "Leveling",
   description: "Show the XP or economy leaderboard for this server.",
   params: "",
   requireElevated: false,

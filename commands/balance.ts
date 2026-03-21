@@ -6,6 +6,7 @@ import { generateBalanceCard } from "../utils/leveling";
 
 const command: CommandSchema = {
   name: "balance",
+  category: "Economy",
   description: "Show a balance card (or another user's).",
   params: "[@user|id]",
   requireElevated: false,

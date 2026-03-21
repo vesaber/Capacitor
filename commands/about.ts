@@ -3,6 +3,7 @@ import type { CommandSchema } from "../utils/CommandSchema";
 
 const command: CommandSchema = {
   name: "about",
+  category: "General",
   description: "About Capacitor",
   requireElevated: false,
 

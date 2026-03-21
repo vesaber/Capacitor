@@ -1,6 +1,6 @@
 import { Client, Events } from "@fluxerjs/core";
 import CommandHandler from "./utils/CommandHandler";
-import { initDatabase, addXP } from "./database";
+import { initDatabase, addXP, isOptedOut, getLevelChannel, getLevelRole } from "./database";
 import { canEarnXP } from "./utils/leveling";
 
 const client = new Client({
@@ -24,12 +24,42 @@ client.on(Events.MessageCreate, async (message) => {
   if (!message.guildId) return;
   if (message.content.length < 3) return;
   if (!canEarnXP(message.author.id)) return;
+  if (await isOptedOut(message.guildId, message.author.id)) return;
 
   try {
     const amount = Math.floor(Math.random() * 21) + 10; // 10–30
     const { before, after } = await addXP(message.guildId, message.author.id, amount);
     if (after > before) {
-      await message.send(`GG <@${message.author.id}>, you leveled up to **Level ${after}**!`);
+      const levelUpMsg = `GG <@${message.author.id}>, you leveled up to **Level ${after}**!`;
+
+      const levelChannelId = await getLevelChannel(message.guildId);
+      if (levelChannelId) {
+        try {
+          const channel = await client.channels.fetch(levelChannelId);
+          if (channel?.isTextBased()) {
+            await channel.send({ content: levelUpMsg });
+          } else {
+            await message.send(levelUpMsg);
+          }
+        } catch {
+          await message.send(levelUpMsg);
+        }
+      } else {
+        await message.send(levelUpMsg);
+      }
+
+      const roleId = await getLevelRole(message.guildId, after);
+      if (roleId) {
+        try {
+          const guild = await message.resolveGuild();
+          if (guild) {
+            const member = await guild.fetchMember(message.author.id);
+            await member.roles.add(roleId);
+          }
+        } catch (err) {
+          console.error(`[XP] Role assignment failed for ${message.author.id} level ${after}:`, err);
+        }
+      }
     }
   } catch (err) {
     console.error(`[XP] Failed for ${message.author.id} in ${message.guildId}:`, err);

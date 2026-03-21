@@ -5,6 +5,7 @@ import { parseMention } from "../utils/moderation";
 
 const command: CommandSchema = {
   name: "untimeout",
+  category: "Moderation",
   description: "Remove a timeout from a member.",
   params: "<@user|id>",
   requireElevated: [Permissions.ModerateMembers],
