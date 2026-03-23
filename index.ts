@@ -1,7 +1,8 @@
-import { Client, Events } from "@fluxerjs/core";
+import { Client, Events, TextChannel } from "@fluxerjs/core";
 import CommandHandler from "./utils/CommandHandler";
 import { initDatabase, addXP, isOptedOut, getLevelChannel, getLevelRole } from "./database";
 import { canEarnXP } from "./utils/leveling";
+import { debugError } from "./utils/debug";
 
 const client = new Client({
   intents: 0,
@@ -36,12 +37,13 @@ client.on(Events.MessageCreate, async (message) => {
       if (levelChannelId) {
         try {
           const channel = await client.channels.fetch(levelChannelId);
-          if (channel?.isTextBased()) {
+          if (channel instanceof TextChannel) {
             await channel.send({ content: levelUpMsg });
           } else {
             await message.send(levelUpMsg);
           }
-        } catch {
+        } catch (err) {
+          debugError("XP level channel send", err);
           await message.send(levelUpMsg);
         }
       } else {
@@ -57,12 +59,12 @@ client.on(Events.MessageCreate, async (message) => {
             await member.roles.add(roleId);
           }
         } catch (err) {
-          console.error(`[XP] Role assignment failed for ${message.author.id} level ${after}:`, err);
+          debugError("XP role assignment", err);
         }
       }
     }
   } catch (err) {
-    console.error(`[XP] Failed for ${message.author.id} in ${message.guildId}:`, err);
+    debugError("XP tracking", err);
   }
 });
 
