@@ -117,8 +117,42 @@ UserBalance.init(
   }
 );
 
+export class GuildBlacklist extends Model {
+  declare guild_id: string;
+  declare reason: string | null;
+  declare added_at: Date;
+}
+
+GuildBlacklist.init(
+  {
+    guild_id: { type: DataTypes.STRING, primaryKey: true },
+    reason: { type: DataTypes.TEXT, allowNull: true },
+    added_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+  },
+  { sequelize, modelName: "GuildBlacklist", timestamps: false }
+);
+
 export async function initDatabase(): Promise<void> {
   await sequelize.sync();
+}
+
+export async function isBlacklisted(guildId: string): Promise<boolean> {
+  const row = await GuildBlacklist.findOne({ where: { guild_id: guildId } });
+  return row !== null;
+}
+
+export async function addToBlacklist(guildId: string, reason?: string): Promise<void> {
+  await GuildBlacklist.upsert({ guild_id: guildId, reason: reason ?? null, added_at: new Date() });
+}
+
+export async function removeFromBlacklist(guildId: string): Promise<boolean> {
+  const deleted = await GuildBlacklist.destroy({ where: { guild_id: guildId } });
+  return deleted > 0;
+}
+
+export async function getBlacklist(): Promise<Array<{ guild_id: string; reason: string | null; added_at: Date }>> {
+  const rows = await GuildBlacklist.findAll({ order: [["added_at", "DESC"]] });
+  return rows.map((r) => ({ guild_id: r.guild_id, reason: r.reason, added_at: r.added_at }));
 }
 
 export async function getBalance(guildId: string, userId: string): Promise<number> {
