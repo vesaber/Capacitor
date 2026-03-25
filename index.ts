@@ -1,6 +1,6 @@
 import { Client, Events, TextChannel } from "@fluxerjs/core";
 import CommandHandler from "./utils/CommandHandler";
-import { initDatabase, addXP, isOptedOut, getLevelChannel, getLevelRole } from "./database";
+import { initDatabase, addXP, isOptedOut, getLevelChannel, getLevelRole, isBlacklisted } from "./database";
 import { canEarnXP } from "./utils/leveling";
 import { debugError } from "./utils/debug";
 
@@ -18,6 +18,8 @@ client.on(Events.Ready, () => {
   console.log(`REST API: ${(client.rest as any).options?.api ?? "default"}`);
 });
 client.on(Events.MessageCreate, async (message) => {
+  if (message.guildId && await isBlacklisted(message.guildId)) return;
+
   CommandHandler(message);
 
   // XP tracking
