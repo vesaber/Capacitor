@@ -1,4 +1,4 @@
-import { Client, Events, TextChannel } from "@fluxerjs/core";
+import { Client, Events, TextChannel, EmbedBuilder } from "@fluxerjs/core";
 import CommandHandler from "./utils/CommandHandler";
 import { initDatabase, addXP, isOptedOut, getLevelChannel, getLevelRole, isBlacklisted } from "./database";
 import { canEarnXP } from "./utils/leveling";
@@ -33,23 +33,25 @@ client.on(Events.MessageCreate, async (message) => {
     const amount = Math.floor(Math.random() * 21) + 10; // 10–30
     const { before, after } = await addXP(message.guildId, message.author.id, amount);
     if (after > before) {
-      const levelUpMsg = `GG <@${message.author.id}>, you leveled up to **Level ${after}**!`;
+      const levelUpEmbed = new EmbedBuilder()
+        .setColor(0x2D8A4E)
+        .setDescription(`GG <@${message.author.id}>, you leveled up to **Level ${after}**!`);
 
       const levelChannelId = await getLevelChannel(message.guildId);
       if (levelChannelId) {
         try {
           const channel = await client.channels.fetch(levelChannelId);
           if (channel instanceof TextChannel) {
-            await channel.send({ content: levelUpMsg });
+            await channel.send({ embeds: [levelUpEmbed] });
           } else {
-            await message.send(levelUpMsg);
+            await message.send({ embeds: [levelUpEmbed] });
           }
         } catch (err) {
           debugError("XP level channel send", err);
-          await message.send(levelUpMsg);
+          await message.send({ embeds: [levelUpEmbed] });
         }
       } else {
-        await message.send(levelUpMsg);
+        await message.send({ embeds: [levelUpEmbed] });
       }
 
       const roleId = await getLevelRole(message.guildId, after);

@@ -5,8 +5,8 @@
     "": {
       "name": "capacitor",
       "dependencies": {
-        "@fluxerjs/core": "^1.2.3",
-        "@napi-rs/canvas": "^0.1.96",
+        "@fluxerjs/core": "^1.2.4",
+        "@napi-rs/canvas": "^0.1.97",
         "gifenc": "^1.0.3",
         "sequelize": "^6.37.8",
         "sharp": "^0.34.5",
