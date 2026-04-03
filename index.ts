@@ -6,6 +6,10 @@ import { debugError } from "./utils/debug";
 
 const client = new Client({
   intents: 0,
+  waitForGuilds: true,
+  cache: {
+    guilds: Infinity,
+  },
   rest: {
     // api: "https://fluxer.exeli.us/api" max come join us here (ur gonna be lonely) because fluxer fluxes up
   },
